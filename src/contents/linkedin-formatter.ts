@@ -22,6 +22,18 @@ const UNICODE_MAP = {
     'A': '𝘈', 'B': '𝘉', 'C': '𝘊', 'D': '𝘋', 'E': '𝘌', 'F': '𝘍', 'G': '𝘎', 'H': '𝘏', 'I': '𝘐', 'J': '𝘑',
     'K': '𝘒', 'L': '𝘓', 'M': '𝘔', 'N': '𝘕', 'O': '𝘖', 'P': '𝘗', 'Q': '𝘘', 'R': '𝘙', 'S': '𝘚', 'T': '𝘛',
     'U': '𝘜', 'V': '𝘝', 'W': '𝘞', 'X': '𝘟', 'Y': '𝘠', 'Z': '𝘡'
+  },
+  retro: {
+    'a': '🅰', 'b': '🅱', 'c': '🅲', 'd': '🅳', 'e': '🅴', 'f': '🅵', 'g': '🅶', 'h': '🅷', 'i': '🅸', 'j': '🅹',
+    'k': '🅺', 'l': '🅻', 'm': '🅼', 'n': '🅽', 'o': '🅾', 'p': '🅿', 'q': '🆀', 'r': '🆁', 's': '🆂', 't': '🆃',
+    'u': '🆄', 'v': '🆅', 'w': '🆆', 'x': '🆇', 'y': '🆈', 'z': '🆉',
+    'A': '🅰', 'B': '🅱', 'C': '🅲', 'D': '🅳', 'E': '🅴', 'F': '🅵', 'G': '🅶', 'H': '🅷', 'I': '🅸', 'J': '🅹',
+    'K': '🅺', 'L': '🅻', 'M': '🅼', 'N': '🅽', 'O': '🅾', 'P': '🅿', 'Q': '🆀', 'R': '🆁', 'S': '🆂', 'T': '🆃',
+    'U': '🆄', 'V': '🆅', 'W': '🆆', 'X': '🆇', 'Y': '🆈', 'Z': '🆉',
+    '0': '⓿', '1': '❶', '2': '❷', '3': '❸', '4': '❹', '5': '❺', '6': '❻', '7': '❼', '8': '❽', '9': '❾',
+    '!': '❗', '?': '❓', '.': '⊡', ',': '⋮', ':': '∶', ';': '⋮', '-': '➖', '+': '➕', '*': '✱', '=': '🟰',
+    '(': '❪', ')': '❫', '[': '❲', ']': '❳', '{': '❴', '}': '❵', '<': '❰', '>': '❱', '/': '➗', '\\': '➘',
+    '|': '❘', '_': '▁', '@': '🌀', '#': '⯃', '$': '💲', '%': '💯', '^': '🔼', '&': '🔭', '~': '〰'
   }
 };
 
@@ -45,9 +57,11 @@ function injectFormatButtons() {
 
     const boldButton = createFormatButton('B', 'Bold');
     const italicButton = createFormatButton('I', 'Italic');
+    const retroButton = createFormatButton('R', 'Retro');
 
     buttonContainer.appendChild(boldButton);
     buttonContainer.appendChild(italicButton);
+    buttonContainer.appendChild(retroButton);
 
     editorContainer.appendChild(buttonContainer);
   }
@@ -78,29 +92,27 @@ function createFormatButton(text: string, title: string): HTMLButtonElement {
   button.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    formatText(title.toLowerCase() as 'bold' | 'italic');
+    formatText(title.toLowerCase() as 'bold' | 'italic' | 'retro');
   });
   return button;
 }
 
-function formatText(style: 'bold' | 'italic') {
+function formatText(style: 'bold' | 'italic' | 'retro') {
   const selection = window.getSelection();
   if (selection && !selection.isCollapsed) {
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
-    const unicodeText = applyUnicodeStyle(selectedText, style);
+    const formattedText = applyUnicodeStyle(selectedText, style);
 
-    const span = document.createElement('span');
-    span.textContent = unicodeText;
-    
     range.deleteContents();
-    range.insertNode(span);
+    const textNode = document.createTextNode(formattedText);
+    range.insertNode(textNode);
 
     // Move the cursor to the end of the inserted text
     selection.removeAllRanges();
     const newRange = document.createRange();
-    newRange.setStartAfter(span);
-    newRange.setEndAfter(span);
+    newRange.setStartAfter(range.endContainer);
+    newRange.setEndAfter(range.endContainer);
     selection.addRange(newRange);
 
     // Trigger input event to ensure LinkedIn recognizes the change
@@ -111,7 +123,7 @@ function formatText(style: 'bold' | 'italic') {
   }
 }
 
-function applyUnicodeStyle(text: string, style: 'bold' | 'italic'): string {
+function applyUnicodeStyle(text: string, style: 'bold' | 'italic' | 'retro'): string {
   return text.split('').map(char => UNICODE_MAP[style][char] || char).join('');
 }
 
