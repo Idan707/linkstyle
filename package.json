@@ -1,8 +1,8 @@
 {
   "name": "linkstyle",
-  "displayName": "Linkstyle",
+  "displayName": "PostPerfect",
   "version": "0.0.1",
-  "description": "linkedin post style",
+  "description": "LinkedIn Post Beautifier",
   "author": "Idan B",
   "scripts": {
     "dev": "plasmo dev",

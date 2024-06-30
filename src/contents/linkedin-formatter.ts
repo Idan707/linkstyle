@@ -37,36 +37,39 @@ const UNICODE_MAP = {
   }
 };
 
+const UNICODE_SYMBOLS = ['►', '✦', '◆', '❖', '◊', '♦', '⬥', '◈'];
+
 function injectFormatButtons() {
-  const editorContainer = document.querySelector('.editor-container');
+    const editorContainer = document.querySelector('.editor-container');
+    
+    if (editorContainer && !document.querySelector('.custom-format-buttons')) {
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'custom-format-buttons';
+      buttonContainer.style.cssText = `
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 9999;
+        display: flex;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        padding: 4px;
+      `;
   
-  if (editorContainer && !document.querySelector('.custom-format-buttons')) {
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'custom-format-buttons';
-    buttonContainer.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 9999;
-      display: flex;
-      background-color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-      padding: 4px;
-    `;
-
-    const boldButton = createFormatButton('B', 'Bold');
-    const italicButton = createFormatButton('I', 'Italic');
-    const retroButton = createFormatButton('R', 'Retro');
-
-    buttonContainer.appendChild(boldButton);
-    buttonContainer.appendChild(italicButton);
-    buttonContainer.appendChild(retroButton);
-
-    editorContainer.appendChild(buttonContainer);
+      const boldButton = createFormatButton('B', 'Bold');
+      const italicButton = createFormatButton('I', 'Italic');
+      const retroButton = createFormatButton('R', 'Retro');
+      const unicodeButton = createUnicodeButton('U', 'Unicode');
+  
+      buttonContainer.appendChild(boldButton);
+      buttonContainer.appendChild(italicButton);
+      buttonContainer.appendChild(retroButton);
+      buttonContainer.appendChild(unicodeButton);
+  
+      editorContainer.appendChild(buttonContainer);
+    }
   }
-}
-
 function createFormatButton(text: string, title: string): HTMLButtonElement {
   const button = document.createElement('button');
   button.textContent = text;
@@ -95,6 +98,105 @@ function createFormatButton(text: string, title: string): HTMLButtonElement {
     formatText(title.toLowerCase() as 'bold' | 'italic' | 'retro');
   });
   return button;
+}
+
+function createUnicodeButton(text: string, title: string): HTMLButtonElement {
+  const button = createFormatButton(text, title);
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleUnicodeDropdown(button);
+  });
+  return button;
+}
+
+function createUnicodeDropdown(): HTMLDivElement {
+    const dropdown = document.createElement('div');
+    dropdown.className = 'unicode-dropdown';
+    dropdown.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 100%;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      padding: 4px;
+      display: none;
+      white-space: nowrap;
+      margin-left: 5px;
+    `;
+  
+    UNICODE_SYMBOLS.forEach(symbol => {
+      const symbolButton = document.createElement('button');
+      symbolButton.textContent = symbol;
+      symbolButton.style.cssText = `
+        margin: 0 2px;
+        padding: 4px 8px;
+        cursor: pointer;
+        background: transparent;
+        color: #5f6368;
+        border: none;
+        border-radius: 3px;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+      `;
+      symbolButton.addEventListener('mouseover', () => {
+        symbolButton.style.backgroundColor = '#f1f3f4';
+      });
+      symbolButton.addEventListener('mouseout', () => {
+        symbolButton.style.backgroundColor = 'transparent';
+      });
+      symbolButton.addEventListener('click', () => insertUnicodeSymbol(symbol));
+      dropdown.appendChild(symbolButton);
+    });
+  
+    return dropdown;
+  }
+
+  function toggleUnicodeDropdown(button: HTMLButtonElement) {
+    let dropdown = document.querySelector('.unicode-dropdown') as HTMLDivElement;
+    if (!dropdown) {
+      dropdown = createUnicodeDropdown();
+      button.parentElement?.appendChild(dropdown);
+    }
+  
+    if (dropdown.style.display === 'none') {
+      dropdown.style.display = 'flex';
+    } else {
+      dropdown.style.display = 'none';
+    }
+  }
+
+function insertUnicodeSymbol(symbol: string) {
+  const selection = window.getSelection();
+  if (selection && !selection.isCollapsed) {
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    const formattedText = `${symbol} ${selectedText}`;
+
+    range.deleteContents();
+    const textNode = document.createTextNode(formattedText);
+    range.insertNode(textNode);
+
+    // Move the cursor to the end of the inserted text
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.setStartAfter(range.endContainer);
+    newRange.setEndAfter(range.endContainer);
+    selection.addRange(newRange);
+
+    // Trigger input event to ensure LinkedIn recognizes the change
+    const editor = document.querySelector('.ql-editor[contenteditable="true"]');
+    if (editor) {
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  // Close the dropdown after inserting the symbol
+  const dropdown = document.querySelector('.unicode-dropdown') as HTMLDivElement;
+  if (dropdown) {
+    dropdown.style.display = 'none';
+  }
 }
 
 function formatText(style: 'bold' | 'italic' | 'retro') {
