@@ -18,26 +18,6 @@ const GA_TRACKING_ID = process.env.PLASMO_PUBLIC_GTAG_ID || 'YOUR-GA-TRACKING-ID
 const Popup = () => {
   const [isEnabled, setIsEnabled] = useState(true)
 
-  useEffect(() => {
-    // Load Google Analytics
-    const script = document.createElement('script')
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`
-    script.async = true
-    document.head.appendChild(script)
-
-    window.dataLayer = window.dataLayer || []
-    function gtag(...args: any[]) {
-      window.dataLayer.push(arguments)
-    }
-    gtag('js', new Date())
-    gtag('config', GA_TRACKING_ID)
-
-    // Send event for popup open
-    gtag('event', 'open', {
-      'event_category': 'Popup',
-      'event_label': 'Popup Opened'
-    })
-  }, [])
 
   const toggleExtension = () => {
     setIsEnabled(!isEnabled)
@@ -50,12 +30,6 @@ const Popup = () => {
     // to enable/disable the extension functionality
   }
 
-  const sendDemoViewEvent = () => {
-    window.gtag('event', 'view', {
-      'event_category': 'Demo',
-      'event_label': 'Demo GIF Viewed'
-    })
-  }
 
   return (
     <div className="popup-container">
@@ -82,7 +56,6 @@ const Popup = () => {
             <img 
               src={demoGif} 
               alt="LinkedIn Formatter Demo" 
-              onLoad={sendDemoViewEvent}
             />
           </div>
         </section>
