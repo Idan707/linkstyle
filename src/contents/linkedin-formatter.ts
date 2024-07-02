@@ -18,27 +18,6 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
-// Google Analytics setup
-const GA_TRACKING_ID = process.env.PLASMO_PUBLIC_GTAG_ID || 'YOUR-GA-TRACKING-ID'
-
-function loadGoogleAnalytics() {
-  const script = document.createElement('script')
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`
-  script.async = true
-  document.head.appendChild(script)
-
-  window.dataLayer = window.dataLayer || []
-  window.gtag = function() { window.dataLayer.push(arguments) }
-  window.gtag('js', new Date())
-  window.gtag('config', GA_TRACKING_ID)
-}
-
-function sendGAEvent(action: string, category: string, label: string) {
-  window.gtag('event', action, {
-    'event_category': category,
-    'event_label': label
-  })
-}
 
 const UNICODE_MAP = {
   bold: {
@@ -139,7 +118,6 @@ function injectFormatButtons() {
       e.preventDefault();
       e.stopPropagation();
       formatText(title.toLowerCase() as 'bold' | 'italic' | 'retro');
-      sendGAEvent('click', 'Formatting', title); // Send GA event
     });
     return button;
   }
@@ -297,7 +275,6 @@ function observeDOM() {
   }
   
   function init() {
-    loadGoogleAnalytics();
     observeDOM();
     
     // Periodically check for the share box and inject buttons if necessary
@@ -305,7 +282,6 @@ function observeDOM() {
       const shareBox = document.querySelector('.share-box');
       if (shareBox) {
         injectFormatButtons();
-        sendGAEvent('view', 'UI', 'Share Box Loaded'); // Send GA event when share box is loaded
       }
     }, 1000);
   }
