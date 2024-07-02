@@ -1,8 +1,43 @@
-import type { PlasmoContentScript } from "plasmo"
+import type { PlasmoCSConfig } from "plasmo"
 
-export const config: PlasmoContentScript = {
+declare global {
+  interface Window {
+    dataLayer: any[]
+    gtag: (a: string, b: any, c?: any) => void
+  }
+}
+
+declare namespace NodeJS {
+  interface ProcessEnv {
+    PLASMO_PUBLIC_GTAG_ID?: string
+  }
+}
+
+export const config: PlasmoCSConfig = {
   matches: ["https://www.linkedin.com/*"],
   all_frames: true
+}
+
+// Google Analytics setup
+const GA_TRACKING_ID = process.env.PLASMO_PUBLIC_GTAG_ID || 'YOUR-GA-TRACKING-ID'
+
+function loadGoogleAnalytics() {
+  const script = document.createElement('script')
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`
+  script.async = true
+  document.head.appendChild(script)
+
+  window.dataLayer = window.dataLayer || []
+  window.gtag = function() { window.dataLayer.push(arguments) }
+  window.gtag('js', new Date())
+  window.gtag('config', GA_TRACKING_ID)
+}
+
+function sendGAEvent(action: string, category: string, label: string) {
+  window.gtag('event', action, {
+    'event_category': category,
+    'event_label': label
+  })
 }
 
 const UNICODE_MAP = {
@@ -40,10 +75,16 @@ const UNICODE_MAP = {
 const UNICODE_SYMBOLS = ['►', '✦', '◆', '❖', '◊', '♦', '⬥', '◈'];
 
 function injectFormatButtons() {
-    const editorContainer = document.querySelector('.editor-container');
+    const shareBox = document.querySelector('.share-box');
+    if (!shareBox) return;
+  
+    const editorContainer = shareBox.querySelector('.ql-editor[contenteditable="true"]');
+    if (!editorContainer) return;
+  
+    let buttonContainer = shareBox.querySelector('.custom-format-buttons') as HTMLDivElement;
     
-    if (editorContainer && !document.querySelector('.custom-format-buttons')) {
-      const buttonContainer = document.createElement('div');
+    if (!buttonContainer) {
+      buttonContainer = document.createElement('div');
       buttonContainer.className = 'custom-format-buttons';
       buttonContainer.style.cssText = `
         position: absolute;
@@ -51,7 +92,7 @@ function injectFormatButtons() {
         left: 10px;
         z-index: 9999;
         display: flex;
-        background-color: #fff;
+        background-color: #005db6;
         border-radius: 5px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
         padding: 4px;
@@ -60,45 +101,48 @@ function injectFormatButtons() {
       const boldButton = createFormatButton('B', 'Bold');
       const italicButton = createFormatButton('I', 'Italic');
       const retroButton = createFormatButton('R', 'Retro');
-      const unicodeButton = createUnicodeButton('U', 'Unicode');
+      const unicodeButton = createUnicodeButton('+', 'Unicode');
   
       buttonContainer.appendChild(boldButton);
       buttonContainer.appendChild(italicButton);
       buttonContainer.appendChild(retroButton);
       buttonContainer.appendChild(unicodeButton);
   
-      editorContainer.appendChild(buttonContainer);
+      shareBox.appendChild(buttonContainer);
     }
   }
-function createFormatButton(text: string, title: string): HTMLButtonElement {
-  const button = document.createElement('button');
-  button.textContent = text;
-  button.title = title;
-  button.style.cssText = `
-    margin: 0 2px;
-    padding: 4px 8px;
-    cursor: pointer;
-    background: transparent;
-    color: #5f6368;
-    border: none;
-    border-radius: 3px;
-    font-weight: bold;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-  `;
-  button.addEventListener('mouseover', () => {
-    button.style.backgroundColor = '#f1f3f4';
-  });
-  button.addEventListener('mouseout', () => {
-    button.style.backgroundColor = 'transparent';
-  });
-  button.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    formatText(title.toLowerCase() as 'bold' | 'italic' | 'retro');
-  });
-  return button;
-}
+
+
+  function createFormatButton(text: string, title: string): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.title = title;
+    button.style.cssText = `
+      margin: 0 2px;
+      padding: 4px 8px;
+      cursor: pointer;
+      background: transparent;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    `;
+    button.addEventListener('mouseover', () => {
+      button.style.backgroundColor = '#c7d7f6';
+    });
+    button.addEventListener('mouseout', () => {
+      button.style.backgroundColor = 'transparent';
+    });
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      formatText(title.toLowerCase() as 'bold' | 'italic' | 'retro');
+      sendGAEvent('click', 'Formatting', title); // Send GA event
+    });
+    return button;
+  }
 
 function createUnicodeButton(text: string, title: string): HTMLButtonElement {
   const button = createFormatButton(text, title);
@@ -117,7 +161,7 @@ function createUnicodeDropdown(): HTMLDivElement {
       position: absolute;
       top: 0;
       left: 100%;
-      background-color: #fff;
+      background-color: #759be5;
       border-radius: 5px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
       padding: 4px;
@@ -134,14 +178,14 @@ function createUnicodeDropdown(): HTMLDivElement {
         padding: 4px 8px;
         cursor: pointer;
         background: transparent;
-        color: #5f6368;
+        color: #e0e8f9;
         border: none;
         border-radius: 3px;
         font-size: 14px;
         transition: background-color 0.3s ease;
       `;
       symbolButton.addEventListener('mouseover', () => {
-        symbolButton.style.backgroundColor = '#f1f3f4';
+        symbolButton.style.backgroundColor = '#759be5';
       });
       symbolButton.addEventListener('mouseout', () => {
         symbolButton.style.backgroundColor = 'transparent';
@@ -228,25 +272,42 @@ function formatText(style: 'bold' | 'italic' | 'retro') {
 function applyUnicodeStyle(text: string, style: 'bold' | 'italic' | 'retro'): string {
   return text.split('').map(char => UNICODE_MAP[style][char] || char).join('');
 }
-
 function observeDOM() {
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-        injectFormatButtons();
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList') {
+          const shareBox = document.querySelector('.share-box');
+          if (shareBox) {
+            injectFormatButtons();
+          } else {
+            // Remove button container if share box is not present
+            const buttonContainer = document.querySelector('.custom-format-buttons');
+            if (buttonContainer) {
+              buttonContainer.remove();
+            }
+          }
+        }
       }
     });
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-}
-
-function init() {
-  observeDOM();
-  injectFormatButtons();
-}
-
-init();
+  
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+  
+  function init() {
+    loadGoogleAnalytics();
+    observeDOM();
+    
+    // Periodically check for the share box and inject buttons if necessary
+    setInterval(() => {
+      const shareBox = document.querySelector('.share-box');
+      if (shareBox) {
+        injectFormatButtons();
+        sendGAEvent('view', 'UI', 'Share Box Loaded'); // Send GA event when share box is loaded
+      }
+    }, 1000);
+  }
+  
+  init();
