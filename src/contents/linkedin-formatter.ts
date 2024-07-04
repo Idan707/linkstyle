@@ -27,7 +27,14 @@ const UNICODE_MAP = {
     'A': '𝗔', 'B': '𝗕', 'C': '𝗖', 'D': '𝗗', 'E': '𝗘', 'F': '𝗙', 'G': '𝗚', 'H': '𝗛', 'I': '𝗜', 'J': '𝗝',
     'K': '𝗞', 'L': '𝗟', 'M': '𝗠', 'N': '𝗡', 'O': '𝗢', 'P': '𝗣', 'Q': '𝗤', 'R': '𝗥', 'S': '𝗦', 'T': '𝗧',
     'U': '𝗨', 'V': '𝗩', 'W': '𝗪', 'X': '𝗫', 'Y': '𝗬', 'Z': '𝗭',
-    '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰', '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵'
+    '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰', '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵',
+    'cool': `
+    ____    ___    ___   _      _ 
+   / ___|  / _ \\  / _ \\ | |    | |
+  | |     | | | || | | || |    | |
+  | |___  | |_| || |_| || |___ | |
+   \\____|  \\___/  \\___/ |_____||_|
+  `
   },
   italic: {
     'a': '𝘢', 'b': '𝘣', 'c': '𝘤', 'd': '𝘥', 'e': '𝘦', 'f': '𝘧', 'g': '𝘨', 'h': '𝘩', 'i': '𝘪', 'j': '𝘫',
@@ -51,6 +58,10 @@ const UNICODE_MAP = {
   }
 };
 
+const asciiArtDict = {
+   
+  };
+
 const UNICODE_SYMBOLS = ['►', '✦', '◆', '❖', '◊', '♦', '⬥', '◈'];
 
 function injectFormatButtons() {
@@ -71,10 +82,9 @@ function injectFormatButtons() {
         left: 10px;
         z-index: 9999;
         display: flex;
-        background-color: #005db6;
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-        padding: 4px;
+        background: linear-gradient(135deg, #4ade80, #3b82f6);
+        border-radius: 20px;
+        padding: 2px;
       `;
   
       const boldButton = createFormatButton('B', 'Bold');
@@ -91,25 +101,22 @@ function injectFormatButtons() {
     }
   }
 
-
   function createFormatButton(text: string, title: string): HTMLButtonElement {
     const button = document.createElement('button');
     button.textContent = text;
     button.title = title;
     button.style.cssText = `
       margin: 0 2px;
-      padding: 4px 8px;
+      padding: 6px 10px;
       cursor: pointer;
-      background: transparent;
-      color: #fff;
+      color: #000;
       border: none;
-      border-radius: 3px;
-      font-weight: bold;
-      font-size: 14px;
-      transition: background-color 0.3s ease;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 12px;
     `;
     button.addEventListener('mouseover', () => {
-      button.style.backgroundColor = '#c7d7f6';
+      button.style.backgroundColor = 'rgba(255,255,255,0.4)';
     });
     button.addEventListener('mouseout', () => {
       button.style.backgroundColor = 'transparent';
@@ -139,9 +146,8 @@ function createUnicodeDropdown(): HTMLDivElement {
       position: absolute;
       top: 0;
       left: 100%;
-      background-color: #759be5;
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      background: linear-gradient(135deg, #4ade80, #3b82f6);
+      border-radius: 16px;
       padding: 4px;
       display: none;
       white-space: nowrap;
@@ -153,12 +159,12 @@ function createUnicodeDropdown(): HTMLDivElement {
       symbolButton.textContent = symbol;
       symbolButton.style.cssText = `
         margin: 0 2px;
-        padding: 4px 8px;
+        padding: 2px 4px;
         cursor: pointer;
         background: transparent;
         color: #e0e8f9;
         border: none;
-        border-radius: 3px;
+        border-radius: 16px;
         font-size: 14px;
         transition: background-color 0.3s ease;
       `;
