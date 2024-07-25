@@ -3,7 +3,7 @@
   "displayName": "PostPerfect",
   "version": "0.0.1",
   "description": "LinkedIn Post Beautifier",
-  "author": "Idan B",
+  "author": "Idan B & Or K",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
