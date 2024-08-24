@@ -9,10 +9,14 @@
     "./**/*.tsx"
   ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["react", "react-dom"],
     "paths": {
       "~*": [
         "./*"
-      ]
+      ],
     },
     "baseUrl": "."
   }

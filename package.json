@@ -10,16 +10,17 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.62",
     "plasmo": "0.88.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "4.1.1",
     "@types/chrome": "0.0.258",
     "@types/node": "20.11.5",
-    "@types/react": "18.2.48",
-    "@types/react-dom": "18.2.18",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
     "prettier": "3.2.4",
     "typescript": "5.3.3"
   },

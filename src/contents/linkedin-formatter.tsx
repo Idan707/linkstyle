@@ -20,6 +20,8 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
+let floatingButtonContainer: HTMLDivElement | null = null;
+
 function injectFormatButtons() {
   const containers = document.querySelectorAll('.share-box, .comments-comment-box-comment__text-editor');
   containers.forEach((container) => {
@@ -28,64 +30,72 @@ function injectFormatButtons() {
     const editorContainer = container.querySelector('.ql-editor[contenteditable="true"]');
     if (!editorContainer) return;
 
-    let buttonContainer = container.querySelector('.custom-format-buttons') as HTMLDivElement;
-    
-    if (!buttonContainer) {
-      buttonContainer = document.createElement('div');
-      buttonContainer.className = 'custom-format-buttons';
-
-      // Adjust positioning based on container type
-      if (container.classList.contains('share-box')) {
-        buttonContainer.style.cssText = `
-          position: absolute;
-          bottom: 14px;
-          left: 17px;
-          z-index: 9999;
-          display: flex;
-          background: linear-gradient(135deg, #45b1ff, #a0f876);
-          border-radius: 20px;
-          padding: 2px;
-        `;
-      } else {
-        // For comment boxes
-        buttonContainer.style.cssText = `
-          position: absolute;
-          top: 32px;
-          left: 60%;
-          transform: translateX(-50%);
-          z-index: 9999;
-          display: flex;
-          background: linear-gradient(135deg, #45b1ff, #a0f876);
-          border-radius: 20px;
-          padding: 2px;
-        `;
-      }
-
-      const boldButton = createFormatButton('B', 'Bold');
-      const italicButton = createFormatButton('I', 'Italic');
-      const retroButton = createFormatButton('R', 'Retro');
-      const unicodeButton = createUnicodeButton('⦿', 'Unicode', 'Bullet Points');
-
-      buttonContainer.appendChild(boldButton);
-      buttonContainer.appendChild(italicButton);
-      buttonContainer.appendChild(retroButton);
-      buttonContainer.appendChild(unicodeButton);
-
-      // Insert the button container
-      if (container.classList.contains('share-box')) {
+    if (container.classList.contains('share-box')) {
+      // For share box, keep the existing implementation
+      let buttonContainer = container.querySelector('.custom-format-buttons') as HTMLDivElement;
+      if (!buttonContainer) {
+        buttonContainer = createButtonContainer(false);
         container.appendChild(buttonContainer);
-      } else {
-        // For comment boxes, insert into the editor-container
-        const editorContainer = container.querySelector('.editor-container');
-        if (editorContainer) {
-          editorContainer.insertBefore(buttonContainer, editorContainer.firstChild);
-        } else {
-          container.insertBefore(buttonContainer, container.firstChild);
-        }
       }
+    } else {
+      // For comment boxes, set up event listeners for text selection
+      editorContainer.addEventListener('mouseup', handleTextSelection);
+      editorContainer.addEventListener('keyup', handleTextSelection);
     }
   });
+
+  // Create a floating button container if it doesn't exist
+  if (!floatingButtonContainer) {
+    floatingButtonContainer = createButtonContainer(true);
+    document.body.appendChild(floatingButtonContainer);
+  }
 }
+
+function createButtonContainer(isFloating: boolean): HTMLDivElement {
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'custom-format-buttons';
+
+  const baseStyle = `
+    z-index: 9999;
+    display: flex;
+    background: linear-gradient(135deg, #45b1ff, #a0f876);
+    border-radius: 20px;
+    padding: 2px;
+  `;
+
+  buttonContainer.style.cssText = isFloating
+    ? `${baseStyle} position: absolute; display: none;`
+    : `${baseStyle} position: absolute; bottom: 14px; left: 17px;`;
+
+  const boldButton = createFormatButton('B', 'Bold');
+  const italicButton = createFormatButton('I', 'Italic');
+  const retroButton = createFormatButton('R', 'Retro');
+  const unicodeButton = createUnicodeButton('⦿', 'Unicode', 'Bullet Points');
+
+  buttonContainer.appendChild(boldButton);
+  buttonContainer.appendChild(italicButton);
+  buttonContainer.appendChild(retroButton);
+  buttonContainer.appendChild(unicodeButton);
+
+  return buttonContainer;
+}
+
+function handleTextSelection(event: Event) {
+  if (!floatingButtonContainer) return;
+
+  const selection = window.getSelection();
+  if (selection && !selection.isCollapsed) {
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+
+    floatingButtonContainer.style.display = 'flex';
+    floatingButtonContainer.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    floatingButtonContainer.style.left = `${rect.left + window.scrollX}px`;
+  } else {
+    floatingButtonContainer.style.display = 'none';
+  }
+}
+
 
 function createFormatButton(text: string, title: string): HTMLButtonElement {
   const button = document.createElement('button');
